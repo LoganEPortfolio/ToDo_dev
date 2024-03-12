@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{task.title}}{% endblock  %}
+
+{% block content %}
+
+<div class="container-fluid text-center">
+    <h1>{{task.title}}</h1>
+    <p>{{task.content}}</p>
+    {% if not task.completed %}
+        <a href="{{url_for('complete', task_id = task.id)}}" class="btn btn-success">Complete</a>
+    {% else %}
+        <a href="{{url_for('incomplete', task_id=task.id)}}" class="btn btn-secondary">Mark Incomplete</a>
+    {% endif %}
+    <a href="{{url_for('delete', task_id=task.id)}}" class="btn btn-danger">Delete</a>
+    
+</div>
+
+
+
+{% endblock content %}

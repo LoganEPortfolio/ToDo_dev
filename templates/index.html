@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{%block title%}Todo List{%endblock%}
+
+{% block content %}
+
+
+{% if not current_user.is_authenticated %}
+    <div class="container-fluid">
+        <h1>You need to Sign In or Sign Up</h1>
+        <p>To see tasks, please log in.</p>
+        <a href="{{url_for('login')}}" class="btn btn-primary">Sign In</a>
+        <a href="{{url_for('register')}}" class="btn btn-primary">Register</a>
+
+    </div>
+{% else %}
+<div class="row justify-content-evenly">
+    {% for task in tasks  %}
+    <div class="card p-3 text-center mb-3" style="width: 18rem;">
+        <!-- <img class="card-img-top" src="..." alt="Card image cap"> -->
+        <div class="card-body">
+          <h5 class="card-title">{{task.title|truncate(25, True)}}</h5>
+          <p class="card-text">
+            {{task.content|truncate(75, True)}}
+          </p>
+          <a href="{{url_for('get_task', task_id = task.id)}}" class="btn btn-link text-decoration-none ">Full Task</a>
+          
+          
+        </div>
+        <div class="container-fluid">
+            {% if task.category %}
+            <p class="card-text">{{task.category.title()}}</p>
+            {% endif %}
+            {% if not task.completed %}
+                <a href="{{url_for('complete', task_id = task.id)}}" class="btn btn-success">✓</a>
+            {% else %}
+                <a href="{{url_for('incomplete', task_id = task.id)}}" class="btn btn-secondary">✓</a>
+            {% endif %}
+            
+            <a href="{{url_for('delete', task_id=task.id, return_route='completed')}}" class="btn btn-danger">X</a>
+
+            
+
+            
+        </div>
+            
+    </div>
+    {% endfor %}
+</div>
+
+{% endif %}
+
+
+
+{% endblock %}
