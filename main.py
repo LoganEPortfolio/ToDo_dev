@@ -8,7 +8,7 @@ from pprint import pprint
 import pandas as pd
 import numpy as np
 import random
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import os
 from functools import wraps
 from forms import AddTask, LoginUser, RegisterUser
@@ -69,11 +69,13 @@ def admin_only(f):
             abort(403)
     return wrapper_function
 
-
+####Main route, brings up tasks due in 7 days
 @app.route('/')
 def home():
+    week_from_now = datetime.now() + timedelta(days=7)
+    print(week_from_now)
     if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id)
+        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.due <= week_from_now)
     else:
         tasks = ''
     #tasks = db.session.execute(db.select(Task)).scalars().all()
@@ -122,6 +124,16 @@ def other():
     return render_template('index.html', tasks=tasks )
 
 
+@app.route('/all')
+@login_required
+def all():
+    if current_user.is_authenticated:
+        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id).order_by(Task.due)
+    else:
+        tasks = ''
+    return render_template('index.html', tasks=tasks)
+
+
 @app.route('/add', methods=["GET", "POST"])
 @login_required
 def add_task():
@@ -145,7 +157,25 @@ def add_task():
 @login_required
 def get_task(task_id):
     task = db.get_or_404(Task, task_id)
+    print(task)
     return render_template('task.html', task=task)
+
+
+@app.route('/completed')
+@login_required
+def get_completed():
+    tasks = db.session.query(Task).filter(Task.user_id == current_user.id, Task.completed == True)
+    return render_template('index.html', tasks = tasks)
+
+
+@app.route('/task/<int:task_id>')
+@login_required
+def toggle_complete(task_id):
+    task = db.get_or_404(Task, task_id)
+    task.completed = not task.completed
+    task.completed_date = datetime.utcnow() if task.completed else None
+    db.session.commit()
+    return redirect(url_for('index'))
 
 
 @app.route('/complete/<task_id>')
@@ -158,14 +188,6 @@ def complete(task_id):
     print(request.path)
     return redirect(request.referrer)
 
-
-@app.route('/completed')
-@login_required
-def get_completed():
-    tasks = db.session.query(Task).filter(Task.user_id == current_user.id, Task.completed == True)
-    return render_template('index.html', tasks = tasks)
-
-
 @app.route('/incomplete/<task_id>')
 @login_required
 def incomplete(task_id):
@@ -174,7 +196,8 @@ def incomplete(task_id):
         task.completed = False
         db.session.commit()
     
-    return redirect(url_for('get_completed'))
+    #return redirect(url_for('get_completed'))
+    return redirect(request.referrer)
 
 
 @app.route('/delete/<int:task_id>')

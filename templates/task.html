@@ -5,14 +5,29 @@
 {% block content %}
 
 <div class="container-fluid text-center">
+    
     <h1>{{task.title}}</h1>
+    <div class="d-flex mb-4">
+        <div class="container">
+            <p class="card-text">Created</p>
+            <p class="card-text">{{task.date_created.strftime("%Y-%m-%d")}}</p>
+        </div>
+        <div class="container">
+            <p class="card-text">Due Date</p>
+            <p class="card-text">{{task.due}}</p>
+        </div>
+    </div>
     <p>{{task.content}}</p>
-    {% if not task.completed %}
-        <a href="{{url_for('complete', task_id = task.id)}}" class="btn btn-success">Complete</a>
-    {% else %}
-        <a href="{{url_for('incomplete', task_id=task.id)}}" class="btn btn-secondary">Mark Incomplete</a>
-    {% endif %}
-    <a href="{{url_for('delete', task_id=task.id)}}" class="btn btn-danger">Delete</a>
+    
+    <div class="d-flex justify-content-evenly mt-5">
+        {% if not task.completed %}
+        <a href="{{url_for('complete', task_id = task.id)}}" class="btn btn-success ">Complete</a>
+        {% else %}
+            <a href="{{url_for('incomplete', task_id=task.id)}}" class="btn btn-secondary">Mark Incomplete</a>
+        {% endif %}
+        <a href="{{url_for('delete', task_id=task.id)}}" class="btn btn-danger">Delete</a>
+    </div>
+    
     
 </div>
 
