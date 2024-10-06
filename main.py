@@ -21,9 +21,10 @@ Bootstrap5(app)
 ### Setup LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
+sql_url = os.environ.get('SQL_URL')
 
 # Connect to Database
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URL', 'sqlite:///todo.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URL', sql_url)
 #db = SQLAlchemy(session_options={"autoflush": False})
 db = SQLAlchemy()
 db.init_app(app)
