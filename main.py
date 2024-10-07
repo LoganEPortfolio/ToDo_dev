@@ -15,14 +15,16 @@ from functools import wraps
 from forms import AddTask, LoginUser, RegisterUser, EditTask
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+sql_url = os.environ.get('SQL_URL')
+s_key = os.environ.get("S_KEY")
+app.config['SECRET_KEY'] = s_key
 Bootstrap5(app)
 ckeditor = CKEditor(app)
 
 ### Setup LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
-sql_url = os.environ.get('SQL_URL')
+
 
 # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URL', sql_url)
