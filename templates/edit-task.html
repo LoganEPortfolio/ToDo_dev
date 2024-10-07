@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% from "bootstrap5/form.html" import render_form, render_form_row %}
+
+{% block title %}Edit {{task.title}}{% endblock %}
+
+{% block content %}
+    
+<section class="py-5">
+    <div class="container px-4 px-lg-5 text-center">
+        <h1>{{task.title}}</h1>
+        <h3>Due: {{task.due}}</h3>
+    </div>
+    <div class="container px-4 px-lg-5">
+        <form  method="POST">
+            <div class="row mb-3">
+                <div class="mx-auto text-center">
+                    <h4>Due Date</h4>
+                    <input type="date" name="due" id="" value="{{task.due}}">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="mx-auto text-center">
+                    <h4>Category</h4>
+                    <select name="category" id="">
+                        <option value="coding" {% if task.category == 'coding' %}selected{% endif %}>Coding</option>
+                        <option value="comics" {% if task.category == 'comics' %}selected{% endif %}>Comics</option>
+                        <option value="other" {% if task.category == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="mx-auto text-center">
+                    <h4>Content</h4>
+                    {{ckeditor.load()}}
+                    {{ckeditor.create(value=task.content)}}
+                    {{ckeditor.config(name='content')}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="mx-auto text-center">
+                    <input type="submit" name="Submit" class="btn btn-success">
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+
+</section>
+
+
+{% endblock %}
