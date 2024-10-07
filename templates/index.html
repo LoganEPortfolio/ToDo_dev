@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
-{%block title%}Todo List{%endblock%}
+{%block title%}
+{% if notes %}
+    Notes List
+{% else %}
+    Tasks List
+{% endif %}
+{%endblock%}
 
 {% block content %}
 
@@ -20,9 +26,9 @@
         <!-- <img class="card-img-top" src="..." alt="Card image cap"> -->
         <div class="card-body">
           <h5 class="card-title">{{task.title|truncate(25, True)}}</h5>
-          <p class="card-text">
+          <!-- <p class="card-text">
             {{task.content|truncate(75, True)}}
-          </p>
+          </p> -->
           <a href="{{url_for('get_task', task_id = task.id)}}" class="btn btn-link text-decoration-none ">Full Task</a>
           
           
@@ -41,12 +47,10 @@
                 </div>
             </div>
             {% endif %}
-            {% if not task.completed %}
-                <a href="{{url_for('complete', task_id = task.id)}}" class="btn btn-success">✓</a>
-            {% else %}
-                <a href="{{url_for('incomplete', task_id = task.id)}}" class="btn btn-secondary">✓</a>
+            {% if task.notes == False %}
+                <a href="{{url_for('toggle_complete', task_id = task.id)}}" class="btn btn-{{'secondary' if task.completed else 'success'}}">✓</a>
             {% endif %}
-            
+                    
             <a href="{{url_for('delete', task_id=task.id, return_route='completed')}}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this task?\n\n Title: {{task.title}}')" type='button'>X</a>
 
             

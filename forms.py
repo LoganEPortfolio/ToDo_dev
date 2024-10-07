@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, TextAreaField, BooleanField, DateField, SelectField
 from wtforms.validators import DataRequired, URL, Email, EqualTo, InputRequired
+from flask_ckeditor import CKEditorField
 
 
 class RegisterUser(FlaskForm):
@@ -17,7 +18,7 @@ class LoginUser(FlaskForm):
     
 class AddTask(FlaskForm):
     title = StringField('Title', validators=[DataRequired('This is required.')])
-    content = StringField('Content')
+    content = CKEditorField('Content')
     due = DateField('Due Date')
     category = SelectField('Category', 
                            choices=[
@@ -27,3 +28,17 @@ class AddTask(FlaskForm):
                                ('other', 'Other')
                                ], validators=[DataRequired('This is required.')])
     submit = SubmitField('Submit')
+    
+    
+class EditTask(FlaskForm):
+    title = StringField('Title', validators=[DataRequired('This is required.')])
+    content = CKEditorField('Content')
+    due = DateField('Due Date')
+    category = SelectField('Category', 
+                           choices=[
+                               ('work', 'Work'),
+                               ('coding', 'Coding'),
+                               ('comics', 'Comics'),
+                               ('other', 'Other')
+                               ], validators=[DataRequired('This is required.')])
+    submit = SubmitField('Edit Task')

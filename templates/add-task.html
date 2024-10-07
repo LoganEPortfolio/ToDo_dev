@@ -9,6 +9,8 @@
 <!-- Section -->
 <section class="py-5">
     <div class="container px-4 px-lg-5">
+        {{ckeditor.load()}}
+        {{ckeditor.config(name='content')}}
         {{render_form(form, novalidate=True)}}
     </div>
 </section>

@@ -2,6 +2,7 @@ from flask import Flask, jsonify,  abort, render_template, redirect, url_for, fl
 from flask_sqlalchemy import SQLAlchemy
 from flask_bootstrap import Bootstrap5
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
+from flask_ckeditor import CKEditor
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from werkzeug.security import generate_password_hash, check_password_hash
 from pprint import pprint
@@ -11,12 +12,12 @@ import random
 from datetime import date, datetime, timedelta
 import os
 from functools import wraps
-from forms import AddTask, LoginUser, RegisterUser
+from forms import AddTask, LoginUser, RegisterUser, EditTask
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
-
+ckeditor = CKEditor(app)
 
 ### Setup LoginManager
 login_manager = LoginManager()
@@ -48,8 +49,8 @@ class Task(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.now)
     category = db.Column(db.String(250), nullable=False)
     completed = db.Column(db.Boolean)
-    #date_created = db.Column(db.DateTime, default=datetime.strptime(str(datetime.now()), '%Y-%m-%d %H:%M:%S'))
-    #user_id = Mapped[int] = mapped_column(ForeignKey('user.id'))
+    completed_date = db.Column(db.String(250))
+    notes = db.Column(db.Boolean)
     
 
 with app.app_context():
@@ -74,65 +75,48 @@ def admin_only(f):
 @app.route('/')
 def home():
     week_from_now = datetime.now() + timedelta(days=7)
-    print(week_from_now)
     if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.due <= week_from_now)
+        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.due <= week_from_now, Task.notes == False).order_by(Task.due)
     else:
-        tasks = ''
-    #tasks = db.session.execute(db.select(Task)).scalars().all()
-
-    
-    return render_template('index.html', tasks=tasks )
+        tasks = ''     
+    return render_template('index.html', tasks=tasks, notes=False)
 
 
-@app.route('/work')
+@app.route('/<category>')
 @login_required
-def work():
+def category_page(category):
     if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == 'work')
+        if category == 'all':
+            tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.notes == False).order_by(Task.due)
+        elif category == 'pastdue':
+            tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.due < datetime.today()-timedelta(days=1), Task.notes == False).order_by(Task.due)
+        elif category != 'pastdue':
+            tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == category).order_by(Task.due)
     else:
-        tasks = ''    
-    return render_template('index.html', tasks=tasks )
+        tasks = ""
+    return render_template('index.html', tasks=tasks, category=category)
 
 
-@app.route('/coding')
+@app.route('/task/<int:task_id>/notes-add')
 @login_required
-def coding():
+def notes_add(task_id):
+    task = db.get_or_404(Task, task_id)
     if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == 'coding')
-    else:
-        tasks = ''    
-    return render_template('index.html', tasks=tasks )
+        task.due = ''
+        task.notes = True
+        db.session.commit()
+    return redirect(request.referrer)
 
-@app.route('/comics')
+@app.route('/edit-notes/<int:task_id>', methods=["GET", "POST"])
 @login_required
-def comics():
-    if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == 'comics')
-    else:
-        tasks = ''    
-    return render_template('index.html', tasks=tasks )
-
-
-
-@app.route('/other')
-@login_required
-def other():
-    if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == 'other')
-    else:
-        tasks = ''    
-    return render_template('index.html', tasks=tasks )
-
-
-@app.route('/all')
-@login_required
-def all():
-    if current_user.is_authenticated:
-        tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id).order_by(Task.due)
-    else:
-        tasks = ''
-    return render_template('index.html', tasks=tasks)
+def edit_notes(task_id):
+    task = db.get_or_404(Task, task_id)
+    form = EditTask()
+    if request.method == 'POST':
+        task.content = request.form.get('ckeditor')
+        db.session.commit()
+        return redirect(url_for('get_task', task_id=task.id))
+    return render_template('edit-task.html', task=task, form=form)
 
 
 @app.route('/add', methods=["GET", "POST"])
@@ -148,17 +132,33 @@ def add_task():
                 due=request.form.get('due'),
                 user_id = current_user.id,
                 category = request.form.get('category'),
-                completed = False
+                completed = False,
+                notes = False
             )
         db.session.add(new_task)
         db.session.commit()
     return render_template('add-task.html', form=form)
 
+
+@app.route('/edit/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+def edit(task_id):
+    task = db.get_or_404(Task, task_id)
+    form = EditTask()
+    if request.method == 'POST':
+        task.content = request.form.get('ckeditor')
+        task.due = request.form.get('due')
+        task.category = request.form.get('category')
+        task.notes = False
+        db.session.commit()
+        return redirect(url_for('get_task', task_id=task.id))
+    return render_template('edit-task.html', task=task, form=form)
+
+
 @app.route('/task/<task_id>')
 @login_required
 def get_task(task_id):
     task = db.get_or_404(Task, task_id)
-    print(task)
     return render_template('task.html', task=task)
 
 
@@ -169,35 +169,13 @@ def get_completed():
     return render_template('index.html', tasks = tasks)
 
 
-@app.route('/task/<int:task_id>')
+@app.route('/task/<int:task_id>/toggle')
 @login_required
 def toggle_complete(task_id):
     task = db.get_or_404(Task, task_id)
     task.completed = not task.completed
     task.completed_date = datetime.utcnow() if task.completed else None
     db.session.commit()
-    return redirect(url_for('index'))
-
-
-@app.route('/complete/<task_id>')
-@login_required
-def complete(task_id):
-    task = db.get_or_404(Task, task_id)
-    if current_user.is_authenticated and current_user.id == task.user_id:
-        task.completed = True
-        db.session.commit()
-    print(request.path)
-    return redirect(request.referrer)
-
-@app.route('/incomplete/<task_id>')
-@login_required
-def incomplete(task_id):
-    task = db.get_or_404(Task, task_id)
-    if current_user.is_authenticated and current_user.id == task.user_id:
-        task.completed = False
-        db.session.commit()
-    
-    #return redirect(url_for('get_completed'))
     return redirect(request.referrer)
 
 

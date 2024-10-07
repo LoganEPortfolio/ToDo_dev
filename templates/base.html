@@ -21,13 +21,13 @@
         <div class="d-flex" id="wrapper">
             <!-- Sidebar-->
             <div class="border-end bg-dark" id="sidebar-wrapper">
-                <div class="sidebar-heading border-bottom bg-dark">Get your $%!* Done</div>
+                <div class="sidebar-heading border-bottom bg-dark">Get It Done!</div>
                 <div class="list-group list-group-flush">
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('work')}}">Work</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('coding')}}">Coding</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('comics')}}">Comics</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('other')}}">Other</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('all')}}">All Tasks</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('category_page', category='pastdue')}}">Past Due</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('category_page', category='coding')}}">Coding</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('category_page', category='comics')}}">Comics</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('category_page', category='other')}}">Other</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="{{url_for('category_page', category='all')}}">All Tasks</a>
                 </div>
             </div>
             <!-- Page content wrapper-->

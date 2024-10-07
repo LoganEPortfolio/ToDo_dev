@@ -1,5 +1,6 @@
 #custom
 instance/
+random_tasks.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
