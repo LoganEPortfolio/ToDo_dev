@@ -84,7 +84,7 @@ def home():
     return render_template('index.html', tasks=tasks, notes=False)
 
 
-@app.route('/<category>')
+@app.route('/tasks/<category>')
 @login_required
 def category_page(category):
     if current_user.is_authenticated:
@@ -93,11 +93,22 @@ def category_page(category):
         elif category == 'pastdue':
             tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.due < datetime.today()-timedelta(days=1), Task.notes == False).order_by(Task.due)
         elif category != 'pastdue':
-            tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == category).order_by(Task.due)
+            tasks = db.session.query(Task).filter(Task.completed == False, Task.user_id == current_user.id, Task.category == category, Task.notes == False).order_by(Task.due)
     else:
         tasks = ""
     return render_template('index.html', tasks=tasks, category=category)
 
+@app.route('/notes/<category>')
+@login_required
+def get_notes(category):
+    if current_user.is_authenticated:
+        if category == 'all':
+            tasks = db.session.query(Task).filter(Task.notes == True).order_by(Task.date_created)
+        else:
+            tasks = db.session.query(Task).filter(Task.notes == True, Task.category == category).order_by(Task.date_created)
+    else:
+        tasks = ""
+    return render_template('index.html', tasks=tasks, category=category)
 
 @app.route('/task/<int:task_id>/notes-add')
 @login_required
@@ -119,6 +130,9 @@ def edit_notes(task_id):
         db.session.commit()
         return redirect(url_for('get_task', task_id=task.id))
     return render_template('edit-task.html', task=task, form=form)
+
+
+    
 
 
 @app.route('/add', methods=["GET", "POST"])
